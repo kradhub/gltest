@@ -12,7 +12,7 @@ GLFW_LIBS := $(shell pkg-config --libs glfw3)
 
 OBJ := $(SRC_FILES:.c=.o)
 CFLAGS += $(GLEW_CFLAGS) $(GLFW_CFLAGS)
-LIBS += $(GLEW_LIBS) $(GLFW_LIBS)
+LIBS += $(GLEW_LIBS) $(GLFW_LIBS) -lm
 
 $(BIN): $(OBJ)
 	$(CC) -o $@ $^ $(LIBS)

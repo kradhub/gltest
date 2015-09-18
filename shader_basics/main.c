@@ -5,6 +5,7 @@
 #include <sys/types.h>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+#include <math.h>
 
 GLuint triangle_vbo;
 GLuint triangle_vao;
@@ -196,12 +197,34 @@ shader_program_create (GLuint vertex_shader_id, GLuint fragment_shader_id)
   return prog_id;
 }
 
+static int
+set_timed_color_green (GLuint shader_program)
+{
+  GLfloat time;
+  GLfloat green;
+  GLint shader_color_location;
+
+  time = glfwGetTime ();
+  green = (sin (time) / 2) + 0.5f;
+
+  /* get the uniform variable 'our_color' declared in the fragment shader */
+  shader_color_location = glGetUniformLocation (shader_program, "our_color");
+  if (shader_color_location < 0)
+    return -1;
+
+  glUseProgram (shader_program);
+  glUniform4f (shader_color_location, 0.0f, green, 0.0f, 1.0f);
+  return 0;
+}
+
 static void
 render (GLuint shader_prog)
 {
   /* clear screen */
   glClearColor (0.2f, 0.3f, 0.3f, 1.0f);
   glClear (GL_COLOR_BUFFER_BIT);
+
+  set_timed_color_green (shader_prog);
 
   glUseProgram (shader_prog);
 
