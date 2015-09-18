@@ -16,6 +16,9 @@ GLuint triangle_vao;
 GLuint rectangle_bo[2];
 GLuint rectangle_vao;
 
+GLuint colored_triangle_vbo;
+GLuint colored_triangle_vao;
+
 static void
 triangle_init (void)
 {
@@ -89,6 +92,43 @@ rectangle_deinit (void)
 {
   glDeleteVertexArrays (1, &rectangle_vao);
   glDeleteBuffers (2, rectangle_bo);
+}
+
+static void
+colored_triangle_init (void)
+{
+  GLfloat vertices[] = {
+    /* position         color          */
+     0.0f, 0.5f,  0.0f, 1.0f, 0.0f, 0.0f,    /* top */
+    -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f,    /* bottom-left */
+     0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f,    /* bottom-right */
+  };
+
+  glGenBuffers (1, &colored_triangle_vbo);
+  glGenVertexArrays (1, &colored_triangle_vao);
+
+  glBindVertexArray (colored_triangle_vao);
+
+  glBindBuffer (GL_ARRAY_BUFFER, colored_triangle_vbo);
+  glBufferData (GL_ARRAY_BUFFER, sizeof (vertices), vertices, GL_STATIC_DRAW);
+
+  glVertexAttribPointer (0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof (GL_FLOAT),
+      0);
+
+  glVertexAttribPointer (1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof (GLfloat),
+      (GLvoid *) (3 * sizeof (GLfloat)));
+
+  glEnableVertexAttribArray (0);
+  glEnableVertexAttribArray (1);
+
+  glBindVertexArray (0);
+}
+
+static void
+colored_triangle_deinit (void)
+{
+  glDeleteVertexArrays (1, &colored_triangle_vao);
+  glDeleteBuffers (1, &colored_triangle_vbo);
 }
 
 static int
@@ -218,15 +258,15 @@ set_timed_color_green (GLuint shader_program)
 }
 
 static void
-render (GLuint shader_prog)
+render (GLuint shader_prog[2])
 {
   /* clear screen */
   glClearColor (0.2f, 0.3f, 0.3f, 1.0f);
   glClear (GL_COLOR_BUFFER_BIT);
 
-  set_timed_color_green (shader_prog);
+  set_timed_color_green (shader_prog[0]);
 
-  glUseProgram (shader_prog);
+  glUseProgram (shader_prog[0]);
 
   /* draw rectangle using shader 0 */
   glBindVertexArray (rectangle_vao);
@@ -235,6 +275,12 @@ render (GLuint shader_prog)
   /* recall triangle conf and render it */
   glBindVertexArray (triangle_vao);
   glDrawArrays (GL_TRIANGLES, 0, 3);
+
+  /* draw our coloured triangle */
+  glUseProgram (shader_prog[1]);
+  glBindVertexArray (colored_triangle_vao);
+  glDrawArrays (GL_TRIANGLES, 0, 3);
+
   glBindVertexArray (0);
 }
 
@@ -250,9 +296,10 @@ main (int argc, char *argv[])
 {
   int ret = 1;
   GLFWwindow *win;
-  GLuint vertex_shader = 0;
+  GLuint vertex_shader[2] = { 0, };
   GLuint frag_shader = 0;
-  GLuint shader_prog = 0;
+  GLuint shader_prog[2] = { 0, };
+  int i;
 
   glfwInit ();
   glfwWindowHint (GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -280,8 +327,13 @@ main (int argc, char *argv[])
   /* set the rendering window position and dimension */
   glViewport (0, 0, 800, 600);
 
-  vertex_shader = shader_init ("simple_vertex_shader.vert", GL_VERTEX_SHADER);
-  if (!vertex_shader)
+  vertex_shader[0] = shader_init ("simple_vertex_shader.vert", GL_VERTEX_SHADER);
+  if (!vertex_shader[0])
+    goto end;
+
+  vertex_shader[1] = shader_init ("colored_vertex_shader.vert",
+      GL_VERTEX_SHADER);
+  if (!vertex_shader[1])
     goto end;
 
   frag_shader = shader_init ("simple_fragment_shader.frag",
@@ -289,13 +341,16 @@ main (int argc, char *argv[])
   if (!frag_shader)
     goto end;
 
-  shader_prog = shader_program_create (vertex_shader, frag_shader);
-  if (!shader_prog)
-    goto end;
+  for (i = 0; i < 2; i++) {
+    shader_prog[i] = shader_program_create (vertex_shader[i], frag_shader);
+    if (!shader_prog[i])
+      goto end;
+  }
 
 
   triangle_init ();
   rectangle_init ();
+  colored_triangle_init ();
 
   while (!glfwWindowShouldClose (win)) {
     glfwPollEvents ();
@@ -309,16 +364,20 @@ main (int argc, char *argv[])
 
   triangle_deinit ();
   rectangle_deinit ();
+  colored_triangle_deinit ();
 
 end:
-  if (vertex_shader)
-    glDeleteShader (vertex_shader);
-
   if (frag_shader)
     glDeleteShader (frag_shader);
 
-  if (shader_prog)
-    glDeleteProgram (shader_prog);
+  for (i = 0; i < 2; i++) {
+    if (vertex_shader[i])
+      glDeleteShader (vertex_shader[i]);
+
+    if (shader_prog[i])
+      glDeleteProgram (shader_prog[i]);
+  }
+
 
   glfwTerminate ();
 
