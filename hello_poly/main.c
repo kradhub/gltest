@@ -42,6 +42,13 @@ triangle_init (void)
 }
 
 static void
+triangle_deinit (void)
+{
+  glDeleteVertexArrays (1, &triangle_vao);
+  glDeleteBuffers (1, &triangle_vbo);
+}
+
+static void
 rectangle_init (void)
 {
   GLfloat vertices[] = {
@@ -74,6 +81,13 @@ rectangle_init (void)
   glEnableVertexAttribArray(0);
 
   glBindVertexArray (0);
+}
+
+static void
+rectangle_deinit (void)
+{
+  glDeleteVertexArrays (1, &rectangle_vao);
+  glDeleteBuffers (2, rectangle_bo);
 }
 
 static int
@@ -269,6 +283,9 @@ main (int argc, char *argv[])
 
   ret = 0;
 
+  triangle_deinit ();
+  rectangle_deinit ();
+
 end:
   if (vertex_shader)
     glDeleteShader (vertex_shader);
@@ -281,7 +298,6 @@ end:
       glDeleteProgram (shader_prog[i]);
   }
 
-  /* FIXME: glew deinit ? */
   glfwTerminate ();
 
   return ret;
