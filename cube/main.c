@@ -224,9 +224,10 @@ render (GLuint shader_prog)
   GLfloat angle;
   GLfloat time;
 
+  glEnable (GL_DEPTH_TEST);
   /* clear screen */
   glClearColor (0.2f, 0.3f, 0.3f, 1.0f);
-  glClear (GL_COLOR_BUFFER_BIT);
+  glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   glUseProgram (shader_prog);
   angle_var = glGetUniformLocation (shader_prog, "angle");
