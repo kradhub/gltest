@@ -215,6 +215,13 @@ render (GLuint shader_prog[2])
   glBindVertexArray (0);
 }
 
+static void
+win_key_callback (GLFWwindow * win, int key, int scancode, int action, int mode)
+{
+  if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+    glfwSetWindowShouldClose (win, GL_TRUE);
+}
+
 int
 main (int argc, char *argv[])
 {
@@ -240,6 +247,7 @@ main (int argc, char *argv[])
   }
 
   glfwMakeContextCurrent (win);
+  glfwSetKeyCallback (win, win_key_callback);
 
   glewExperimental = GL_TRUE;
   if (glewInit () != GLEW_OK) {
