@@ -15,6 +15,7 @@ GLuint rectangle_bo[2];
 GLuint rectangle_vao;
 
 GLuint cont_tex;
+GLuint face_tex;
 
 static void
 rectangle_init (void)
@@ -206,7 +207,18 @@ render (GLuint shader_prog[2])
   glClear (GL_COLOR_BUFFER_BIT);
 
   glUseProgram (shader_prog[0]);
+
+  /* bind container texture to the first one and link it with the good
+   * uniform variable */
+  glActiveTexture (GL_TEXTURE0);
   glBindTexture (GL_TEXTURE_2D, cont_tex);
+  glUniform1i (glGetUniformLocation (shader_prog[0], "tex1"), 0);
+
+  /* bind face texture to the second one and link with the good uniform var */
+  glActiveTexture (GL_TEXTURE1);
+  glBindTexture (GL_TEXTURE_2D, face_tex);
+  glUniform1i (glGetUniformLocation (shader_prog[0], "tex2"), 1);
+
   /* draw rectangle using shader 0 */
   glBindVertexArray (rectangle_vao);
 
@@ -215,6 +227,9 @@ render (GLuint shader_prog[2])
     light = 1.1f;
   }
   glUniform1f (glGetUniformLocation (shader_prog[0], "light"), light);
+
+  /* texture 2 needs to be swapped in y */
+  glUniform1ui (glGetUniformLocation (shader_prog[0], "tex_coord_swap_y[1]"), 1);
 
   glDrawElements (GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
@@ -284,6 +299,7 @@ main (int argc, char *argv[])
 
   rectangle_init ();
   load_image_to_texture ("container.jpg", &cont_tex);
+  load_image_to_texture ("awesomeface.png", &face_tex);
 
   while (!glfwWindowShouldClose (win)) {
     glfwPollEvents ();
