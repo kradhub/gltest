@@ -68,24 +68,34 @@ build_model_matrix_rot (GLfloat mat[4][4], GLfloat degrees, GLfloat rot_axis[3])
 {
   GLfloat rad;
   GLfloat a;
+  GLfloat vec_length;
+  GLfloat rot_axis_n[3];
+  int i;
 
   rad = (degrees * M_PI) / 180.0;
 
-  a = (1 - cos (rad));
+  /* normalize rot_axis */
+  vec_length = sqrt (rot_axis[0] * rot_axis[0] + rot_axis[1] * rot_axis[1] +
+      rot_axis[2] * rot_axis[2]);
 
-  mat[0][0] = cos (rad) + rot_axis[0] * rot_axis[0] * a;
-  mat[0][1] = rot_axis[0] * rot_axis[1] * a + rot_axis[2] * sin (rad);
-  mat[0][2] = rot_axis[0] * rot_axis[2] * a - rot_axis[1] * sin (rad);
+  for (i = 0; i < 3; i++)
+    rot_axis_n[i] = rot_axis[i] / vec_length;
+
+  a = (1.0 - cos (rad));
+
+  mat[0][0] = cos (rad) + rot_axis_n[0] * rot_axis_n[0] * a;
+  mat[0][1] = rot_axis_n[0] * rot_axis_n[1] * a + rot_axis_n[2] * sin (rad);
+  mat[0][2] = rot_axis_n[0] * rot_axis_n[2] * a - rot_axis_n[1] * sin (rad);
   mat[0][3] = 0;
 
-  mat[1][0] = rot_axis[0] * rot_axis[1] * a - rot_axis[2] * sin (rad);
-  mat[1][1] = cos (rad) + rot_axis[1] * rot_axis[1] * a;
-  mat[1][2] = rot_axis[1] * rot_axis[2] * a + rot_axis[0] * sin (rad);
+  mat[1][0] = rot_axis_n[0] * rot_axis_n[1] * a - rot_axis_n[2] * sin (rad);
+  mat[1][1] = cos (rad) + rot_axis_n[1] * rot_axis_n[1] * a;
+  mat[1][2] = rot_axis_n[1] * rot_axis_n[2] * a + rot_axis_n[0] * sin (rad);
   mat[1][3] = 0;
 
-  mat[2][0] = rot_axis[0] * rot_axis[2] * a + rot_axis[1] * sin (rad);
-  mat[2][1] = rot_axis[1] * rot_axis[2] * a - rot_axis[0] * sin (rad);
-  mat[2][2] = cos (rad) + rot_axis[2] * rot_axis[2] * a;
+  mat[2][0] = rot_axis_n[0] * rot_axis_n[2] * a + rot_axis_n[1] * sin (rad);
+  mat[2][1] = rot_axis_n[1] * rot_axis_n[2] * a - rot_axis_n[0] * sin (rad);
+  mat[2][2] = cos (rad) + rot_axis_n[2] * rot_axis_n[2] * a;
   mat[2][3] = 0;
 
   mat[3][0] = 0;
